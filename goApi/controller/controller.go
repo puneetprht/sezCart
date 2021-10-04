@@ -14,8 +14,12 @@ import (
 )
 
 type authCustomClaims struct {
-	Name string `json:"name"`
+	Name 				string 		 `json:"name"`
 	jwt.StandardClaims
+}
+
+type AuthToken struct {
+	Token 			string 		 `json:"token"`
 }
 
 type User struct {
@@ -207,6 +211,23 @@ func OrderList(c *gin.Context) {
 	var orders []Order
 	database.DBConn.Find(&orders)
 	c.JSON(200, orders)
+}
+
+func ValidateUserToken(c *gin.Context) {
+	var userToken AuthToken
+  if err := c.BindJSON(&userToken); err != nil {
+      return
+  }
+	tokenOutput, err := validateToken(userToken.Token)
+	if err != nil {
+		c.JSON(403, "Invalid authentication token")
+	}
+	if tokenOutput.Valid == false {
+		c.JSON(403, "Invalid authentication token")
+	}
+	var user User
+	database.DBConn.First(&user, " token = ? ", userToken.Token)
+	c.JSON(200, user)
 }
 
 func generateToken(email string) string {
