@@ -1,14 +1,22 @@
 package controller
 
 import (
+	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"goApi/database"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
+type authCustomClaims struct {
+	Name string `json:"name"`
+	jwt.StandardClaims
+}
 
 type User struct {
 	ID       	   uint64 	 `json:"id" gorm:"primary_key;auto_increment"`
@@ -51,9 +59,15 @@ func UserPost(c *gin.Context) {
   if err := c.BindJSON(&userLogin); err != nil {
       return
   }
-
+	result := database.DBConn.First(&userLogin, "username = ?", userLogin.Username)
+	if(result.RowsAffected == 1){
+		c.JSON(500, gin.H{
+			"message": "User already exists",
+		})	
+		return
+	}
 	userLogin.Created_At = time.Now() 
-	result := database.DBConn.Create(&userLogin)
+	result = database.DBConn.Create(&userLogin)
 	c.JSON(200, result)
 }
 
@@ -63,9 +77,17 @@ func UserLogin(c *gin.Context) {
   if err := c.BindJSON(&userLogin); err != nil {
       return
   }
-	userLogin.Created_At = time.Now() 
-	result := database.DBConn.Create(&userLogin)
-	c.JSON(200, result)
+	result := database.DBConn.First(&userLogin, "username = ? AND password >= ?", userLogin.Username, userLogin.Password)
+	if(result.RowsAffected == 0){
+		c.JSON(500, gin.H{
+			"message": "username/password is invalid!",
+		})	
+		return 
+	}
+	token := generateToken(userLogin.Username)
+	userLogin.Token = token
+	database.DBConn.Save(&userLogin)
+	c.JSON(200, userLogin)
 }
 
 func UserList(c *gin.Context) {
@@ -92,19 +114,38 @@ func ItemList(c *gin.Context) {
 
 //cart post code
 func CartPost(c *gin.Context) {
+	auth := c.Request.Header.Get("Authorization")
+		if auth == "" {
+			c.JSON(http.StatusForbidden, "No Authorization header provided")
+			return
+		}
+	tokenString := strings.TrimPrefix(auth, "Bearer ")
+		if tokenString == auth {
+			c.JSON(403, "Could not find bearer token in Authorization header")
+			return
+		}
+	tokenOutput, err := validateToken(tokenString)
+	if err != nil {
+		c.JSON(403, "Invalid authentication token")
+	}
+	if tokenOutput.Valid == false {
+		c.JSON(403, "Invalid authentication token")
+	}
+	var user User
+	database.DBConn.First(&user, " token = ? ", tokenString)
+	
 	var cartItem CartItem
   if err := c.BindJSON(&cartItem); err != nil {
       return
   }
 	if (cartItem.Cart_Id == 0) {
 		var newCart Cart
-		var id = uint64(1)
-		newCart.User_Id = id // replace with userId for loggedin user from token
+		newCart.User_Id = user.ID 
 		newCart.Created_At = time.Now()
 		database.DBConn.Create(&newCart)
 		cartItem.Cart_Id = newCart.ID
 		var user User
-		database.DBConn.First(&user, id)
+		database.DBConn.First(&user, user.ID)
 		user.Cart_Id = newCart.ID
 		database.DBConn.Save(&user)
 	}
@@ -114,8 +155,27 @@ func CartPost(c *gin.Context) {
 	c.JSON(200, cartItem)
 }
 
-//cart complete
 func CartComplete(c *gin.Context) {
+	auth := c.Request.Header.Get("Authorization")
+		if auth == "" {
+			c.JSON(http.StatusForbidden, "No Authorization header provided")
+			return
+		}
+	tokenString := strings.TrimPrefix(auth, "Bearer ")
+		if tokenString == auth {
+			c.JSON(403, "Could not find bearer token in Authorization header")
+			return
+		}
+	tokenOutput, err := validateToken(tokenString)
+	if err != nil {
+		c.JSON(403, "Invalid authentication token")
+	}
+	if tokenOutput.Valid == false {
+		c.JSON(403, "Invalid authentication token")
+	}
+	var user User
+	database.DBConn.First(&user, " token = ? ", tokenString)
+
 	id, _ := strconv.Atoi(c.Param("cartId"))
 	var cart Cart
 	database.DBConn.First(&cart, id)
@@ -124,7 +184,7 @@ func CartComplete(c *gin.Context) {
 
 	var orderFinal Order
 	orderFinal.Cart_Id = cart.ID
-	orderFinal.User_Id = uint64(1)
+	orderFinal.User_Id = user.ID
 	orderFinal.Created_At = time.Now()
 	database.DBConn.Create(&orderFinal)
 
@@ -149,3 +209,30 @@ func OrderList(c *gin.Context) {
 	c.JSON(200, orders)
 }
 
+func generateToken(email string) string {
+	claims := &authCustomClaims{
+		email,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 48).Unix(),
+			Issuer:    "sezcart",
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	//encoded string
+	t, err := token.SignedString([]byte("3663083757"))
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+func validateToken(encodedToken string) (*jwt.Token, error) {
+	return jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
+		if _, isvalid := token.Method.(*jwt.SigningMethodHMAC); !isvalid {
+			return nil, fmt.Errorf("Invalid token", token.Header["alg"])
+		}
+		return []byte("3663083757"), nil
+	})
+}
