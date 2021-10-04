@@ -1,8 +1,10 @@
 package controller
 
 import (
-	"fmt"
+	"strconv"
 	"time"
+
+	"goApi/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,14 +15,15 @@ type User struct {
 	Name 				 string 	 `json:"name" gorm:"type:varchar(250)"`
 	Username  	 string 	 `json:"username" gorm:"type:varchar(250)"`
 	Password  	 string 	 `json:"password" gorm:"type:varchar(250)"`
-	Cart   			 Cart 		 `gorm:"embedded;embeddedPrefix:cart_"`
+	Cart_Id   	 uint64		 `json:"cart_id"`
+	Token 			 string    `json:"token" gorm:"type:varchar(500)"`
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
 type Cart struct {
 	ID        	 uint64		 `json:"id" gorm:"primary_key;auto_increment"`
-	User_Id      string 	 `json:"user_id"`
-	Is_Purchased string		 `json:"is_purchased"`
+	User_Id      uint64 	 `json:"user_id"`
+	Is_Purchased bool		   `json:"is_purchased"`
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
@@ -30,17 +33,16 @@ type Item struct {
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
-type CartItems struct {
+type CartItem struct {
 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
-	ItemId   		 uint64    `gorm:"primary_key;auto_increment" json:"itemId"`
-	CartId   		 uint64    `gorm:"primary_key;auto_increment" json:"cartId"`
+	Item_Id   	 uint64    `gorm:"primary_key;auto_increment" json:"item_id"`
+	Cart_Id   	 uint64    `gorm:"primary_key;auto_increment" json:"cart_id"`
 }
 
 type Order struct {
 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
-	Cart   			 Cart      `gorm:"embedded;embeddedPrefix:cart_"`
-	User   			 User 		 `gorm:"embedded;embeddedPrefix:user_"`
-	Is_Purchased string    `json:"is_purchased"`
+	Cart_Id   	 uint64		 `json:"cart_id"`
+	User_Id   	 uint64		 `json:"user_id"`
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
@@ -49,26 +51,27 @@ func UserPost(c *gin.Context) {
   if err := c.BindJSON(&userLogin); err != nil {
       return
   }
-	fmt.Println("user posting function.")
-	
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+
+	userLogin.Created_At = time.Now() 
+	result := database.DBConn.Create(&userLogin)
+	c.JSON(200, result)
 }
 
+// token assignment left
 func UserLogin(c *gin.Context) {
 	var userLogin User
   if err := c.BindJSON(&userLogin); err != nil {
       return
   }
 	userLogin.Created_At = time.Now() 
-	c.JSON(200, userLogin)
+	result := database.DBConn.Create(&userLogin)
+	c.JSON(200, result)
 }
 
 func UserList(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"nbame": "pong",
-	})
+	var users []User
+	database.DBConn.Find(&users)
+	c.JSON(200, users)
 }
 
 func ItemPost(c *gin.Context) {
@@ -77,39 +80,72 @@ func ItemPost(c *gin.Context) {
       return
   }
 	newItem.Created_At = time.Now() 
-	c.JSON(200, newItem)
+	result := database.DBConn.Create(&newItem)
+	c.JSON(200, result)
 }
 
 func ItemList(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+	var items []Item
+	database.DBConn.Find(&items)
+	c.JSON(200, items)
 }
 
+//cart post code
 func CartPost(c *gin.Context) {
-	var cartItem CartItems
+	var cartItem CartItem
   if err := c.BindJSON(&cartItem); err != nil {
       return
   }
+	if (cartItem.Cart_Id == 0) {
+		var newCart Cart
+		var id = uint64(1)
+		newCart.User_Id = id // replace with userId for loggedin user from token
+		newCart.Created_At = time.Now()
+		database.DBConn.Create(&newCart)
+		cartItem.Cart_Id = newCart.ID
+		var user User
+		database.DBConn.First(&user, id)
+		user.Cart_Id = newCart.ID
+		database.DBConn.Save(&user)
+	}
+	if (cartItem.Cart_Id > 0 && cartItem.Item_Id > 0) {
+		database.DBConn.Create(&cartItem)
+	}
 	c.JSON(200, cartItem)
 }
 
+//cart complete
 func CartComplete(c *gin.Context) {
-	name := c.Param("cartId")
-	c.JSON(200, gin.H{
-		"name": name,
-	})
+	id, _ := strconv.Atoi(c.Param("cartId"))
+	var cart Cart
+	database.DBConn.First(&cart, id)
+	cart.Is_Purchased = true
+	database.DBConn.Save(&cart)
+
+	var orderFinal Order
+	orderFinal.Cart_Id = cart.ID
+	orderFinal.User_Id = uint64(1)
+	orderFinal.Created_At = time.Now()
+	database.DBConn.Create(&orderFinal)
+
+	c.JSON(200, orderFinal)
 }
 
+//I guess to be joined with order and users table to show cart and user info.
 func CartList(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+	id, _ := strconv.Atoi(c.Param("cartId"))
+	var cartItems []CartItem
+	if (id > 0) {
+		database.DBConn.Where("cart_id = ?", id).Find(&cartItems)
+	} else {
+		database.DBConn.Find(&cartItems)	
+	}	
+	c.JSON(200, cartItems)
 }
 
 func OrderList(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"message": "pong",
-	})
+	var orders []Order
+	database.DBConn.Find(&orders)
+	c.JSON(200, orders)
 }
 

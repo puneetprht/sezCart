@@ -37,5 +37,5 @@ func initDatabase() {
 		panic(err.Error)
 	}
 	fmt.Println("Database connection successfully opened")
-	database.DBConn.AutoMigrate(&controller.User{}, &controller.Cart{}, &controller.Item{}, &controller.CartItems{}, &controller.Order{})
+	database.DBConn.AutoMigrate(&controller.User{}, &controller.Cart{}, &controller.Item{}, &controller.CartItem{}, &controller.Order{})
 }

@@ -1,4 +1,4 @@
-CREATE TABLE `ecom`.`user` (
+CREATE TABLE `ecom`.`users` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(250) NULL,
   `username` VARCHAR(250) NULL,
@@ -9,7 +9,7 @@ CREATE TABLE `ecom`.`user` (
   PRIMARY KEY (`id`))
 COMMENT = 'to store user information';
 
-CREATE TABLE `ecom`.`item` (
+CREATE TABLE `ecom`.`items` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(250) NULL,
   `created_at` DATETIME NULL DEFAULT now(),
@@ -17,16 +17,16 @@ CREATE TABLE `ecom`.`item` (
 COMMENT = 'inventory items to be stored		';
 
 
-CREATE TABLE `ecom`.`cart` (
+CREATE TABLE `ecom`.`carts` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `user_id` INT NULL,
   `is_purchased` TINYINT NULL,
   `created_at` DATETIME NULL DEFAULT NOW(),
   PRIMARY KEY (`id`),
-  INDEX `FK_user_id_idx` (`user_id` ASC) VISIBLE,
-  CONSTRAINT `FK_user_id`
+  INDEX `FK_users_id_idx` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `FK_users_id`
     FOREIGN KEY (`user_id`)
-    REFERENCES `ecom`.`user` (`id`)
+    REFERENCES `ecom`.`users` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 COMMENT = 'Users cart';
@@ -35,7 +35,7 @@ CREATE TABLE `ecom`.`cartitems` (
   `cart_id` INT NULL,
   `item_id` INT NULL);
 
-CREATE TABLE `ecom`.`order` (
+CREATE TABLE `ecom`.`orders` (
   `id` INT NOT NULL,
   `cart_id` INT NULL,
   `user_id` INT NULL,
