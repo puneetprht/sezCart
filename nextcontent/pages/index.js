@@ -2,7 +2,7 @@ import cookie from 'js-cookie';
 import {parseCookies} from 'nookies';
 import {useRouter} from 'next/router';
 import axios from '../src/service/axios';
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -74,8 +74,8 @@ export default function Home(props) {
         password: passwordLogin,
       })
       .then(async (response) => {
-        cookie.set('token',response.data.token)
-        cookie.set('user',response.data)
+        cookie.set('token', response.data.token)
+        cookie.set('user', JSON.stringify(response.data))
         setEmailLogin('');
         setPasswordLogin('');
         router.push('/home');
@@ -154,10 +154,5 @@ export default function Home(props) {
 
 export async function getServerSideProps(ctx){
   const {user, token} = parseCookies(ctx)
-  if(!token){
-      const {res} = ctx
-      res.writeHead(302,{Location:"/"})
-      res.end()
-  }
-  return {props: {token: token, user: user || {}}};
+  return {props: {token: token || null, user: user || {}}};
 }

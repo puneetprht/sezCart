@@ -10,14 +10,15 @@
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
-  margin: 0;
+  padding-left: 1em;
   padding: 0;
 }
 
 .logo {
-    height: 2.5em;
+    height: 4em;
     cursor: pointer;
     margin-bottom: 0.2em;
+    margin-left: 2em;
 }
 
 .list{
@@ -34,6 +35,7 @@
 .linksActive{
   line-height: 2.5em;
   height: 2.5em;
+  margin: 1em;
   border-bottom: 2px solid #edf0f1;
   transition: color 0.3s ease 0s;
 }
@@ -139,6 +141,7 @@
   font-size: 60px;
   color: #edf0f1;
 }
+
 
 @media screen and (max-height: 450px) {
   .menuLinks {

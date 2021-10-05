@@ -1,48 +1,36 @@
 .container{
   display: grid;  
-  grid-template-columns: 22% 59% 19%;
+  grid-template-columns: 80% 20%;
   padding: 1em 0.5em;
   background-color: #fff;
   grid-auto-flow: dense
   /* grid-template-columns: 17% 66% 17%; */
 }
 
-/* Categories column */
-.leftModule{
-  border-radius: 1em;
-  background-color: rgb(247, 250, 248);
-  max-height: 100%;
-  margin: 0 1%;
-  padding: 1em 0.5em;
-  grid-column-end: initial;
+.buttonWrapper{
+  display: grid;  
+  grid-template-columns: 65% 35%;
 }
 
-.leftHeading{
-  margin: 0;
-  padding: 0;
-  color: #008ACF;
-  font-weight: 500;
-}
-
-.leftContent{
-  margin: 1%;
-  padding: 0.3em ;
-  color: #009CDE;
-}
-
-.leftContentActive{
-  margin: 1%;
-  padding: 0.3em ;
-  color: #009CDE;
-  border-radius: 1em;
-  background-color: rgb(232, 232, 232);
-  font-weight: 500;
-}
-
-.leftContent:hover{
-  text-decoration: underline;
-  font-weight: 500;
+.button2 {
+  padding: 4px 8px;
+  margin-top: 0.5em;
+  height: 2em;
+  width: 10em;
+  color: #fff;
+  background-color: #008ACF;
+  align-self: center;
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.3s ease 0s;
+}
+
+.button2:hover {
+  color: #FF8E1C;
+  background-color:#008ACF;
 }
 
 /* Main column */
@@ -51,34 +39,6 @@
   border-radius: 1em;
   background-color: rgb(250, 250, 250);
   color:#008ACF;
-}
-
-.centerGrid{
-  display: grid;  
-  grid-template-columns: 40% 20% 40%;
-  border-radius: 1em;
-  margin-bottom: 0.5em;
-  background-color: rgb(230, 243, 255);
-}
-
-.centerGridSubject{
-  margin-right: 1%;
-  padding: 1em 1em;
-  font-weight: 500;
-}
-
-.centerConfirmSubject, .centerEditSubject{
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-
-.textInputSubject{
-  padding-left: 0.5em;
-  width: 60%;
-  cursor: pointer;
 }
 
 .confirm{
@@ -91,62 +51,39 @@
   width: 0.8em;
   cursor: pointer;
 }
-.centerGridCount{
+
+.centerGrid{
+  display: grid;  
+  grid-template-columns: 80% 20%;
+  border-radius: 1em;
+  margin-bottom: 0.5em;
+  background-color: rgb(230, 243, 255);
+}
+
+.centerGridSubject{
+  margin-right: 1%;
   padding: 1em 1em;
-  cursor: pointer;
+  font-weight: 500;
 }
 
-.centerGridAction{
-  margin-left: 1%;
-  padding: 1em 1em;
-}
-
-.ActionRow1{
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.trash{
-  width: 1em;
-  color: #ff6363;
-}
-
-.isActive{
-  font-weight: 600;
-  font-size: medium;
-}
-
-.trash:hover{
-  width: 1em;
-  color: #fd8c8c;
-  cursor: pointer;
-}
-
-.ActionRow2{
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.actionTextInput{
-  width: 50px;
-}
-
-.addParent{
-  display: flex;
-  justify-content: center;
-}
-
-.add{
-  width: 2em;
-  margin: 1em 0.5em;  
+.button {
+  padding: 4px 8px;
+  height: 2em;
+  width: 10em;
+  background-color: #ffffff;
+  color: #008ACF;
   align-self: center;
-  text-align: center;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 500;
+  transition: background-color 0.3s ease 0s;
+}
+
+.button:hover {
+  background-color: #FF8E1C;
+  color:#ffffff;
 }
 
 /* Statistic column */
@@ -174,6 +111,7 @@
 }
 
 
+
 /* On screens that are 992px wide or less, go from four columns to two columns */
 @media screen and (max-width: 992px) {
   .container {
@@ -195,15 +133,7 @@
     grid-template-columns: 100% 0%;
   }
 
-  .leftModule{
-    display: none;
-  }
-
   .centerModule{
     margin-left: 1%;
-  }
-
-  .dropdown {
-    display: block;
   }
 }

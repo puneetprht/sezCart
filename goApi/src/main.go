@@ -37,7 +37,7 @@ func main() {
 	routes.POST("/item/create", controller.ItemPost)
 	routes.GET("/item/list", controller.ItemList)
 	routes.POST("/cart/add", controller.CartPost)
-	routes.PUT("/cart/:cartId/complete", controller.CartComplete)
+	routes.POST("/cart/:cartId/complete", controller.CartComplete)
 	routes.GET("/cart/list", controller.CartList)
 	routes.GET("/order/list", controller.OrderList)
 
@@ -51,7 +51,7 @@ func initDatabase() {
 		panic(err.Error)
 	}
 	fmt.Println("Database connection successfully opened")
-	database.DBConn.AutoMigrate(&controller.User{}, &controller.Cart{}, &controller.Item{}, &controller.CartItem{}, &controller.Order{})
+	database.DBConn.AutoMigrate(&controller.User{}, &controller.Cart{}, &controller.Item{}, &controller.Cartitem{}, &controller.Order{})
 }
 
 func CORS() gin.HandlerFunc {

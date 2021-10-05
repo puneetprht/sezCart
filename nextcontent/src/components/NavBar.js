@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import cookie from 'js-cookie';
-import {useState} from 'react';
 import {parseCookies} from 'nookies';
 import {useRouter} from 'next/router';
 
@@ -10,41 +9,17 @@ const NavBar = () => {
     const router = useRouter();
     const cookieuser = parseCookies();
     const token =  cookieuser.token;
-    const [mode, setMode] = useState(false);
-
-
-    const overlayMode = () => {
-      if(mode)
-        return styles.overlayActive;
-      else
-        return styles.overlay;
-    } 
     
     return(
       <>
         <nav className={styles.navContainer}>
           <div className={styles.wrapper}>
-          {token ?
-              <>
-                <a id="button-laptop">
-                  <button className={styles.logout} onClick={()=>{
-                      cookie.remove('token')
-                      cookie.remove('user')
-                      router.push('/')
-                    }}
-                  >
-                    Log Out
-                  </button>
-                </a>   
-              </>
-                :
-              <>
-              </>
-            }
-            <Link href="/">
+          <div className={styles.logo}>
+              <Link  href="/">
                 SezCart
-            </Link>
-            {token ?
+              </Link>
+          </div>
+          {token ?
               <>
                 <a id="button-laptop">
                   <button className={styles.logout} onClick={()=>{

@@ -32,6 +32,7 @@ CREATE TABLE `ecom`.`carts` (
 COMMENT = 'Users cart';
 
 CREATE TABLE `ecom`.`cartitems` (
+  `id` INT NOT NULL AUTO_INCREMENT,
   `cart_id` INT NULL,
   `item_id` INT NULL);
 

@@ -45,10 +45,17 @@ type Item struct {
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
-type CartItem struct {
+// type Cartitem struct {
+// 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
+// 	Item_Id   	 uint64    `json:"item_id"`
+// 	Cart_Id   	 uint64    `json:"cart_id"`
+// }
+
+type Cartitem struct {
 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
-	Item_Id   	 uint64    `gorm:"primary_key;auto_increment" json:"item_id"`
-	Cart_Id   	 uint64    `gorm:"primary_key;auto_increment" json:"cart_id"`
+	Item_Id   	 uint64    `json:"item_id"`
+	Cart_Id   	 uint64    `json:"cart_id"`
+	Count        uint64    `gorm:"-" sql:"-" json:"count"`
 }
 
 type Order struct {
@@ -138,25 +145,23 @@ func CartPost(c *gin.Context) {
 	var user User
 	database.DBConn.First(&user, " token = ? ", tokenString)
 	
-	var cartItem CartItem
-  if err := c.BindJSON(&cartItem); err != nil {
+	var Cartitem Cartitem
+  if err := c.BindJSON(&Cartitem); err != nil {
       return
   }
-	if (cartItem.Cart_Id == 0) {
+	if (Cartitem.Cart_Id == 0) {
 		var newCart Cart
 		newCart.User_Id = user.ID 
 		newCart.Created_At = time.Now()
 		database.DBConn.Create(&newCart)
-		cartItem.Cart_Id = newCart.ID
-		var user User
-		database.DBConn.First(&user, user.ID)
+		Cartitem.Cart_Id = newCart.ID
 		user.Cart_Id = newCart.ID
 		database.DBConn.Save(&user)
 	}
-	if (cartItem.Cart_Id > 0 && cartItem.Item_Id > 0) {
-		database.DBConn.Create(&cartItem)
+	if (Cartitem.Cart_Id > 0 && Cartitem.Item_Id > 0) {
+		database.DBConn.Create(&Cartitem)
 	}
-	c.JSON(200, cartItem)
+	c.JSON(200, Cartitem)
 }
 
 func CartComplete(c *gin.Context) {
@@ -179,6 +184,8 @@ func CartComplete(c *gin.Context) {
 	}
 	var user User
 	database.DBConn.First(&user, " token = ? ", tokenString)
+	user.Cart_Id = 0
+	database.DBConn.Save(&user)
 
 	id, _ := strconv.Atoi(c.Param("cartId"))
 	var cart Cart
@@ -197,19 +204,26 @@ func CartComplete(c *gin.Context) {
 
 //I guess to be joined with order and users table to show cart and user info.
 func CartList(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("cartId"))
-	var cartItems []CartItem
+	id, _ := strconv.Atoi(c.Query("cartId"))
+	var CartitemViewModel []Cartitem
 	if (id > 0) {
-		database.DBConn.Where("cart_id = ?", id).Find(&cartItems)
+		//database.DBConn.Where("cart_id = ?", id).Find(&Cartitems)
+		database.DBConn.Model(&Cartitem{}).Select(" cart_id, item_id, count(cart_id) as count ").Group(` cart_id, item_id `).Having(" cart_id = ?", id).Find(&CartitemViewModel)
 	} else {
-		database.DBConn.Find(&cartItems)	
+		database.DBConn.Model(&Cartitem{}).Select(" cart_id, item_id, count(cart_id) as count ").Group(` cart_id, item_id `).Find(&CartitemViewModel)
 	}	
-	c.JSON(200, cartItems)
+	c.JSON(200, CartitemViewModel)
 }
 
 func OrderList(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Query("userId"))
 	var orders []Order
-	database.DBConn.Find(&orders)
+	if (id > 0) {
+		//database.DBConn.Where("cart_id = ?", id).Find(&Cartitems)
+		database.DBConn.Where( " user_id = ? ", id).Find(&orders)
+	} else {
+		database.DBConn.Find(&orders)
+	}	
 	c.JSON(200, orders)
 }
 
@@ -226,7 +240,13 @@ func ValidateUserToken(c *gin.Context) {
 		c.JSON(403, "Invalid authentication token")
 	}
 	var user User
-	database.DBConn.First(&user, " token = ? ", userToken.Token)
+	result := database.DBConn.First(&user, " token = ? ", userToken.Token)
+	if(result.RowsAffected == 0){
+		c.JSON(500, gin.H{
+			"message": "No user",
+		})	
+		return
+	}
 	c.JSON(200, user)
 }
 
