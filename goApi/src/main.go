@@ -16,17 +16,6 @@ func main() {
 
 	routes := gin.Default()
 
-	// routes.Use(cors.New(cors.Config{
-  //   AllowOrigins:     []string{"http://localhost:3000"},
-  //   AllowMethods:     []string{"PUT", "GET", "POST"},
-  //   AllowHeaders:     []string{"Origin"},
-  //   ExposeHeaders:    []string{"Content-Length"},
-  //   AllowCredentials: true,
-  //   AllowOriginFunc: func(origin string) bool {
-  //     return origin == "http://localhost:3000.com"
-  //   },
-  //   MaxAge: 48 * time.Hour,
-  // }))
 	routes.Use(CORS())
 	
 	fmt.Printf("SezCart API.")
@@ -64,10 +53,6 @@ func CORS() gin.HandlerFunc {
 			if c.Request.Method != "OPTIONS" {
 				c.Next()
 			} else {
-				// Everytime we receive an OPTIONS request, 
-				// we just return an HTTP 200 Status Code
-				// Like this, Angular can now do the real 
-				// request using any other method than OPTIONS
 				c.AbortWithStatus(200)
 			}
 	}

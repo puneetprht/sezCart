@@ -45,12 +45,6 @@ type Item struct {
 	Created_At   time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
 
-// type Cartitem struct {
-// 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
-// 	Item_Id   	 uint64    `json:"item_id"`
-// 	Cart_Id   	 uint64    `json:"cart_id"`
-// }
-
 type Cartitem struct {
 	ID           uint64    `gorm:"primary_key;auto_increment" json:"id"`
 	Item_Id   	 uint64    `json:"item_id"`
@@ -82,7 +76,6 @@ func UserPost(c *gin.Context) {
 	c.JSON(200, result)
 }
 
-// token assignment left
 func UserLogin(c *gin.Context) {
 	var userLogin User
   if err := c.BindJSON(&userLogin); err != nil {
