@@ -37,7 +37,7 @@ CREATE TABLE `ecom`.`cartitems` (
   `item_id` INT NULL);
 
 CREATE TABLE `ecom`.`orders` (
-  `id` INT NOT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
   `cart_id` INT NULL,
   `user_id` INT NULL,
   `created_at` DATETIME NULL DEFAULT NOW(),
