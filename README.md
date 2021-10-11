@@ -1,8 +1,6 @@
 # sezCart
  ECommerce Website Project
 
-![Go](https://github.com/waznico/go-book-api/workflows/Go/badge.svg)
-
 # Go React based Demo Project
 Here a simple REST API has been created inorder to process transactions from the frontend. The REST API service is written in Go with Gin Framework and GORM ORM framework. The Frontend is based upon Next.js which is a lightweight react Framework. Code has been deployed on a private AWS EC2 server, Database MYSQL has been used.
 
